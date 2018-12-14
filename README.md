@@ -25,18 +25,17 @@ A simple setup demo
   (setq agtags-global-treat-text t)
 
   (agtags-bind-keys)
+  (agtags-update-parser)
+
   (add-hook 'text-mode-hook 'agtags-mode-on)
   (add-hook 'prog-mode-hook 'agtags-mode-on)
-  (add-to-list 'xref-backend-functions 'agtags-xref-backend) ;; drop it when you don't need xref
-
-  (agtags-update-parser))
-
+  (add-to-list 'xref-backend-functions 'agtags-xref-backend)) ;; drop it when you don't need xref
 ```
 
 Call **agtags-update-root** When you modify the **Project** directory.
 
 ``` el
-;; aprodject demo
+;; aproject demo
 (after-aproject-change (agtags-update-root aproject-rootdir)))
 
 ;; projectile demo
