@@ -33,7 +33,17 @@ A simple setup demo
 
 ```
 
-> To Use **agtags-update-root** When you modify the **Project** directory.
+Call **agtags-update-root** When you modify the **Project** directory.
+
+``` el
+;; aprodject demo
+(after-aproject-change (agtags-update-root aproject-rootdir)))
+
+;; projectile demo
+(defun my-switch-project-hook ()
+  (agtags-update-root (projectile-project-root)))
+(add-hook 'projectile-after-switch-project-hook #'my-switch-project-hook)
+```
 
 Variables
 -------
@@ -57,15 +67,16 @@ Functions
 
 Set global key bindings for agtags.
 
-Get file path in **aproject-rootdir**.
-
 **agtags-update-root (root)**
 
-Set ROOT directory of the project for agtags. it simply set env **GTAGSROOT**.
+It simply modify env **GTAGSROOT**.
+Set ROOT directory of the project for agtags.  
 
 **agtags-update-parser (&optional parser)**
 
-Set parser to PARSER for agtags or smart parser it. it simply set env **GTAGSLABEL**.
+It simply modify env **GTAGSLABEL**.  
+Set parser to PARSER for agtags or smart parser it.  
+The order of precedence is 'new-ctags' -> 'pygments' -> 'ctags' -> 'default'.
 
 Bind Keys
 -------
