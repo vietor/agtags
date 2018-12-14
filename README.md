@@ -3,12 +3,12 @@
 agtags
 ========
 
-Another Emacs frontend to GNU Global. It support **wgrep** in **agtags-grep-mode**.
+Another Emacs frontend to GNU Global. It support [**wgrep**](https://github.com/mhayashi1120/Emacs-wgrep) in **agtags-grep-mode**.
 
 Setup
 -----
 
-Add the following to your `init.el` (after the `agtags.el` in you load-path):
+Put this file into load-path'ed directory, and byte compile it if desired. And put the following expression into your ~/.emacs.
 
 ``` el
 (require 'agtags)
