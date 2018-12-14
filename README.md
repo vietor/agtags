@@ -12,7 +12,7 @@ Add the following to your `init.el` (after the `agtags.el` in you load-path):
 
 ``` el
 (require 'agtags)
-(require 'agtags-xref) ;; drop it when don't need xref
+(require 'agtags-xref) ;; drop it when you don't need xref
 ```
 
 A simple setup demo
@@ -27,13 +27,13 @@ A simple setup demo
   (agtags-bind-keys)
   (add-hook 'text-mode-hook 'agtags-mode-on)
   (add-hook 'prog-mode-hook 'agtags-mode-on)
-  (add-to-list 'xref-backend-functions 'agtags-xref-backend) ;; drop it when don't need xref
+  (add-to-list 'xref-backend-functions 'agtags-xref-backend) ;; drop it when you don't need xref
 
   (agtags-update-parser))
 
 ```
 
-> To Use **agtags-update-root** When you modify the **Project**.
+> To Use **agtags-update-root** When you modify the **Project** directory.
 
 Variables
 -------
