@@ -57,7 +57,7 @@ Non-nil if Global should ignore case in the search pattern.
 
 **agtags-global-treat-text** (Default nil)
 
-Non-nil if Global should include matches from text files. This affects 'agtags--find-file' and 'agtags--find-grep'.
+Non-nil if Global should include matches from text files. This affects 'agtags-find-file' and 'agtags-find-grep'.
 
 Functions
 -------
@@ -80,31 +80,31 @@ The order of precedence is 'new-ctags' -> 'pygments' -> 'ctags' -> 'default'.
 Bind Keys
 -------
 
-**("b" . agtags--update-tags)**
+**("b" . agtags-update-tags)**
 
 Create or Update tag files (e.g. GTAGS) in directory `GTAGSROOT`.
 
-**("f" . agtags--open-file)**
+**("f" . agtags-open-file)**
 
 Input pattern and move to the top of the file.
 
-**("F" . agtags--find-file)**
+**("F" . agtags-find-file)**
 
 Input pattern, search file and move to the top of the file.
 
-**("t" . agtags--find-tag)**
+**("t" . agtags-find-tag)**
 
 Input tag and move to the locations.
 
-**("r" . agtags--find-rtag)**
+**("r" . agtags-find-rtag)**
 
 Input rtags and move to the locations.
 
-**("p" . agtags--find-with-grep)**
+**("p" . agtags-find-with-grep)**
 
 Input pattern, search with grep(1) and move to the locations.
 
-**("q" . agtags--switch-dwim)**
+**("q" . agtags-switch-dwim)**
 
 Switch to last agtags-*-mode buffer.
 

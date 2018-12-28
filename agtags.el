@@ -176,11 +176,6 @@ If there's a string at point, offer that as a default."
              (string-prefix-p (agtags--get-root) buffer-file-name))
     (call-process "global" nil nil nil "-u" (concat "--single-update=" buffer-file-name))))
 
-(defun agtags--kill-window ()
-  "Quit agtags-*-mode window and kill its buffer."
-  (interactive)
-  (quit-window t))
-
 (defadvice compile-goto-error (around agtags activate)
   "Use same window when goto selected."
   (let ((display-buffer-overriding-action agtags--display-buffer-dwim))
@@ -205,7 +200,6 @@ If there's a string at point, offer that as a default."
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map "\r" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
-    (define-key map "q" 'agtags--kill-window)
     (define-key map "g" 'recompile)
     (define-key map "n" 'compilation-next-error)
     (define-key map "p" 'compilation-previous-error)
@@ -277,7 +271,7 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
 ;; The interactive functions
 ;;
 
-(defun agtags--update-tags ()
+(defun agtags-update-tags ()
   "Create or Update tag files (e.g. GTAGS) in directory `GTAGSROOT`."
   (interactive)
   (let ((rootpath (agtags--get-root)))
@@ -289,42 +283,42 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
       (when (zerop (call-process (executable-find "gtags") nil t nil "-i"))
         (message "Tags create or update by GTAGS")))))
 
-(defun agtags--open-file ()
+(defun agtags-open-file ()
   "Input pattern and move to the top of the file."
   (interactive)
   (let ((user-input (agtags--read-completing 'files "Open file")))
     (when (> (length user-input) 0)
       (find-file (expand-file-name user-input (agtags--get-root))))))
 
-(defun agtags--find-file ()
+(defun agtags-find-file ()
   "Input pattern, search file and move to the top of the file."
   (interactive)
   (let ((user-input (agtags--read-input "Find files")))
     (when (> (length user-input) 0)
       (agtags--run-global-to-mode (list "--path" (agtags--shell-quote user-input)) "path"))))
 
-(defun agtags--find-tag ()
+(defun agtags-find-tag ()
   "Input tag and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'tags "Find tag")))
     (when (> (length user-input) 0)
       (agtags--run-global-to-mode (list (agtags--shell-quote user-input))))))
 
-(defun agtags--find-rtag ()
+(defun agtags-find-rtag ()
   "Input rtags and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
       (agtags--run-global-to-mode (list "--reference" (agtags--shell-quote user-input))))))
 
-(defun agtags--find-with-grep ()
+(defun agtags-find-with-grep ()
   "Input pattern, search with grep(1) and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search string")))
     (when (> (length user-input) 0)
       (agtags--run-global-to-mode (list "--grep" (agtags--shell-quote user-input))))))
 
-(defun agtags--switch-dwim ()
+(defun agtags-switch-dwim ()
   "Switch to last agtags-*-mode buffer."
   (interactive)
   (let ((buffer (or (get-buffer "*agtags-grep*")
@@ -340,13 +334,13 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
 ;;;###autoload
 (defun agtags-bind-keys()
   "Set global key bindings for agtags."
-  (dolist (pair '(("q" . agtags--switch-dwim)
-                  ("b" . agtags--update-tags)
-                  ("f" . agtags--open-file)
-                  ("F" . agtags--find-file)
-                  ("t" . agtags--find-tag)
-                  ("r" . agtags--find-rtag)
-                  ("p" . agtags--find-with-grep)))
+  (dolist (pair '(("q" . agtags-switch-dwim)
+                  ("b" . agtags-update-tags)
+                  ("f" . agtags-open-file)
+                  ("F" . agtags-find-file)
+                  ("t" . agtags-find-tag)
+                  ("r" . agtags-find-rtag)
+                  ("p" . agtags-find-with-grep)))
     (global-set-key (kbd (concat agtags-key-prefix " " (car pair))) (cdr pair))))
 
 ;;;###autoload
