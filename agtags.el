@@ -187,13 +187,8 @@ If there's a string at point, offer that as a default."
   '(("^Global \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
      (1 'compilation-error)
      (2 'compilation-error nil t))
-    ("^Global found \\([0-9]+\\)" (1 compilation-info-face))))
-
-(defconst agtags--button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'agtags--goto-selected)
-    map))
+    ("^Global found \\([0-9]+\\)" (1 compilation-info-face)))
+  "Common highlighting expressions for agtags-*-mode.")
 
 (defconst agtags--global-mode-map
   (let ((map (make-sparse-keymap)))
@@ -207,10 +202,12 @@ If there's a string at point, offer that as a default."
     (define-key map "p" 'compilation-previous-error)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
-    map))
+    map)
+  "Common keymap for agtags-*-mode.")
 
 (defconst agtags--path-regexp-alist
-  `((,"^\\(?:[^\"'\n]*/\\)?[^ )\t\n]+$" 0)))
+  `((,"^\\(?:[^\"'\n]*/\\)?[^ )\t\n]+$" 0))
+  "Custom 'compilation-error-regexp-alist' for agtags-path-mode.")
 
 (defconst agtags--grep-regexp-alist
   `((,"^\\(.+?\\):\\([0-9]+\\):\\(?:$\\|[^0-9\n]\\|[0-9][^0-9\n]\\|[0-9][0-9].\\)"
@@ -219,7 +216,8 @@ If there's a string at point, offer that as a default."
          (let* ((start (1+ (match-end 2)))
                 (mbeg (text-property-any start (line-end-position) 'global-color t)))
            (and mbeg (- mbeg start)))))
-     nil 1)))
+     nil 1))
+  "Custom 'compilation-error-regexp-alist' for agtags-grep-mode.")
 
 (defun agtags--global-mode-finished (buffer _tatus)
   "Function to call when a gun global process finishes.
@@ -232,6 +230,10 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
     (when dbuffer
       (delete-windows-on dbuffer)
       (kill-buffer dbuffer))))
+
+;;
+;; The agtags-grep-mode
+;;
 
 (defvar agtags-grep-mode-map agtags--global-mode-map)
 (defvar agtags-grep-mode-font-lock-keywords agtags--global-mode-font-lock-keywords)
@@ -247,6 +249,10 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (setq-local compilation-scroll-output 'first-error)
   (setq-local compilation-error-regexp-alist agtags--grep-regexp-alist)
   (setq-local compilation-finish-functions #'agtags--global-mode-finished))
+
+;;
+;; The agtags-path-mode
+;;
 
 (defvar agtags-path-mode-map agtags--global-mode-map)
 (defvar agtags-path-mode-font-lock-keywords agtags--global-mode-font-lock-keywords)
@@ -264,7 +270,7 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
 
 ;;;###autoload
 (define-minor-mode agtags-mode nil
-  :lighter " G"
+  :lighter " Gtags"
   (if agtags-mode
       (add-hook 'before-save-hook 'agtags--auto-update nil 'local)
     (remove-hook 'before-save-hook 'agtags--auto-update 'local)))
