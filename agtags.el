@@ -219,7 +219,7 @@ If there's a string at point, offer that as a default."
            (and mbeg (- mbeg start)))))
      nil 1)))
 
-(defun agtags--global-mode-finished (buffer status)
+(defun agtags--global-mode-finished (buffer _status)
   "Function to call when a gun global process finishes.
 BUFFER is the global's mode buffer, STATUS was the finish status."
   (let* ((name (buffer-name buffer))
