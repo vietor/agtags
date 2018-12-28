@@ -1,4 +1,4 @@
-;;; agtags.el --- emacs frontend to GNU Global -*- lexical-binding: t; -*-
+;;; agtags.el --- A frontend to GNU Global -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Vietor Liu
 
@@ -29,6 +29,7 @@
 ;;; Code:
 (require 'grep)
 (require 'compile)
+(require 'subr-x)
 
 (defvar agtags-mode)
 
@@ -83,7 +84,7 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
 (defun agtags--get-root ()
   "Get and validate env  `GTAGSROOT`."
   (let ((dir (getenv "GTAGSROOT")))
-    (when (zerop (length dir))
+    (when (string-empty-p dir)
       (error "No env `GTAGSROOT` provided"))
     dir))
 
@@ -139,9 +140,8 @@ Otherwise, get the symbol at point, as a string."
 
 (defun agtags--read-input (prompt)
   "Read a value from the minibuffer with PROMPT."
-  (let* ((final-prompt (format "%s: " prompt))
-         (user-input (read-from-minibuffer final-prompt nil nil nil agtags--history-list)))
-    user-input))
+  (let ((final-prompt (format "%s: " prompt)))
+    (read-from-minibuffer final-prompt nil nil nil agtags--history-list)))
 
 (defun agtags--read-input-dwim (prompt)
   "Read a value from the minibuffer with PROMPT.

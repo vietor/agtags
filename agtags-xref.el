@@ -1,4 +1,4 @@
-;;; agtags-xref.el --- emacs xref frontend to GNU Global -*- lexical-binding: t; -*-
+;;; agtags-xref.el --- A xref frontend to GNU Global -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Vietor Liu
 
