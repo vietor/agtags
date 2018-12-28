@@ -15,6 +15,7 @@
 
 ;;; Code:
 (require 'grep)
+(require 'compile)
 
 (defvar agtags-mode)
 
@@ -46,7 +47,8 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
 
 (defconst agtags--display-buffer-dwim '((display-buffer-reuse-window
                                          display-buffer-same-window)
-                                        (inhibit-same-window . nil)))
+                                        (inhibit-same-window . nil))
+  "Custom 'display-buffer-overriding-action' in agtags-*-mode.")
 
 ;;
 ;; The private functions
@@ -219,7 +221,7 @@ If there's a string at point, offer that as a default."
            (and mbeg (- mbeg start)))))
      nil 1)))
 
-(defun agtags--global-mode-finished (buffer _status)
+(defun agtags--global-mode-finished (buffer _tatus)
   "Function to call when a gun global process finishes.
 BUFFER is the global's mode buffer, STATUS was the finish status."
   (let* ((name (buffer-name buffer))
