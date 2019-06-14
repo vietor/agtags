@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
@@ -49,7 +49,7 @@ Return the results as a list of xref location objects.  ARGS are
 any additional command line arguments to pass to GNU Global."
   (let* ((process-args (append
                         args
-                        (list "-x" "-a" (agtags--quote symbol))))
+                        (list "-x" "-a" symbol)))
          (global-output (agtags--run-global-to-list process-args)))
     (remove nil (mapcar #'agtags-xref--make-xref global-output))))
 
@@ -69,7 +69,7 @@ any additional command line arguments to pass to GNU Global."
   (agtags-xref--find-symbol symbol "-r"))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
-  (agtags-xref--find-symbol symbol "-g"))
+  (agtags-xref--find-symbol (agtags--quote-string symbol) "-g"))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
   (agtags--run-global-to-list (list "-c")))

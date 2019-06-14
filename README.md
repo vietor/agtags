@@ -100,7 +100,11 @@ Input tag and move to the locations.
 
 Input rtags and move to the locations.
 
-**("p" . agtags-find-with-grep)**
+**("p" . agtags-find-with-string)**
+
+Input string, search as substring and move to the locations.
+
+**("g" . agtags-find-with-pattern)**
 
 Input pattern, search with grep(1) and move to the locations.
 

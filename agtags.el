@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
@@ -68,7 +68,7 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
 ;; The private functions
 ;;
 
-(defun agtags--quote (string)
+(defun agtags--quote-string (string)
   "Return a regular expression whose only exact match is STRING."
   (let ((s string))
     (when (not (string-match-p "\\\\" s))
@@ -76,10 +76,6 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
     (when (string-match-p "^-" s)
       (setq s (concat "\\" s)))
     s))
-
-(defun agtags--shell-quote (string)
-  "Return a regular expression whose only exact match is STRING for shell."
-  (shell-quote-argument (agtags--quote string)))
 
 (defun agtags--get-root ()
   "Get and validate env  `GTAGSROOT`."
@@ -316,28 +312,35 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (interactive)
   (let ((user-input (agtags--read-input "Find files")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--path" (agtags--shell-quote user-input)) "path"))))
+      (agtags--run-global-to-mode (list "--path" (shell-quote-argument user-input) "path")))))
 
 (defun agtags-find-tag ()
   "Input tag and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'tags "Find tag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list (agtags--shell-quote user-input))))))
+      (agtags--run-global-to-mode (list (shell-quote-argument user-input))))))
 
 (defun agtags-find-rtag ()
   "Input rtags and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--reference" (agtags--shell-quote user-input))))))
+      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument user-input))))))
 
-(defun agtags-find-with-grep ()
+(defun agtags-find-with-pattern ()
   "Input pattern, search with grep(1) and move to the locations."
+  (interactive)
+  (let ((user-input (agtags--read-input-dwim "Search pattern")))
+    (when (> (length user-input) 0)
+      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument user-input))))))
+
+(defun agtags-find-with-string ()
+  "Input string, search as substring and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search string")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--grep" (agtags--shell-quote user-input))))))
+      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument (agtags--quote-string user-input)))))))
 
 (defun agtags-switch-dwim ()
   "Switch to last agtags-*-mode buffer."
@@ -361,7 +364,8 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
                   ("F" . agtags-find-file)
                   ("t" . agtags-find-tag)
                   ("r" . agtags-find-rtag)
-                  ("p" . agtags-find-with-grep)))
+                  ("p" . agtags-find-with-string)
+                  ("g" . agtags-find-with-pattern)))
     (global-set-key (kbd (concat agtags-key-prefix " " (car pair))) (cdr pair))))
 
 ;;;###autoload
