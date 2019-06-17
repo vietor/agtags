@@ -116,14 +116,12 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
                            (and (eq flag 'files) "--path")
                            (and (eq flag 'rtags) "--reference")
                            (and agtags-global-ignore-case "--ignore-case")
-                           (and agtags-global-treat-text "--other"))))
-         (complete-list (agtags--run-global-to-list (delq nil xs))))
-    (cond ((eq code nil)
-           (try-completion string complete-list predicate))
-          ((eq code t)
-           (all-completions string complete-list predicate))
-          ((eq code 'lambda)
-           (if (intern-soft string complete-list) t nil)))))
+                           (and agtags-global-treat-text "--other")
+                           string)))
+         (candidates (agtags--run-global-to-list (delq nil xs))))
+    (if (not code)
+        (try-completion string candidates predicate)
+      (all-completions string candidates predicate))))
 
 (defun agtags--read-dwim ()
   "If there's an active selection, return that.
@@ -319,14 +317,14 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'tags "Find tag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list (shell-quote-argument user-input))))))
+      (agtags--run-global-to-mode (list (shell-quote-argument (agtags--quote-string user-input)))))))
 
 (defun agtags-find-rtag ()
   "Input rtags and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument user-input))))))
+      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument (agtags--quote-string user-input)))))))
 
 (defun agtags-find-with-pattern ()
   "Input pattern, search with grep(1) and move to the locations."
