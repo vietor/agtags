@@ -69,7 +69,7 @@ any additional command line arguments to pass to GNU Global."
   (agtags-xref--find-symbol (agtags--quote-string symbol) "-r"))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
-  (agtags-xref--find-symbol (agtags--quote-string symbol) "-g"))
+  (agtags-xref--find-symbol symbol "-g"))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
   (agtags--run-global-to-list (list "-c")))
