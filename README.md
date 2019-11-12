@@ -25,7 +25,6 @@ A simple setup demo
   (setq agtags-global-treat-text t)
 
   (agtags-bind-keys)
-  (agtags-update-parser)
 
   (add-hook 'text-mode-hook 'agtags-mode-on)
   (add-hook 'prog-mode-hook 'agtags-mode-on)
@@ -70,12 +69,6 @@ Set global key bindings for agtags.
 
 It simply modify env **GTAGSROOT**.
 Set ROOT directory of the project for agtags.
-
-**agtags-update-parser (&optional parser)**
-
-It simply modify env **GTAGSLABEL**.
-Set parser to PARSER for agtags or smart parser it.
-The order of precedence is 'new-ctags' -> 'pygments' -> 'ctags' -> 'default'.
 
 Bind Keys
 -------
