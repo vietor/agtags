@@ -63,10 +63,10 @@ any additional command line arguments to pass to GNU Global."
   (agtags--read-dwim))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql agtags)) symbol)
-  (agtags-xref--find-symbol (agtags--quote-string symbol) "-d"))
+  (agtags-xref--find-symbol (agtags--quote symbol) "-d"))
 
 (cl-defmethod xref-backend-references ((_backend (eql agtags)) symbol)
-  (agtags-xref--find-symbol (agtags--quote-string symbol) "-r"))
+  (agtags-xref--find-symbol (agtags--quote symbol) "-r"))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
   (agtags-xref--find-symbol symbol "-g"))

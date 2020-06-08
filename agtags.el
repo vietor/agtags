@@ -68,14 +68,11 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
 ;; The private functions
 ;;
 
-(defun agtags--quote-string (string)
+(defun agtags--quote (string)
   "Return a regular expression whose only exact match is STRING."
-  (let ((s string))
-    (when (not (string-match-p "\\\\" s))
-      (setq s (regexp-quote s)))
-    (when (string-match-p "^-" s)
-      (setq s (concat "\\" s)))
-    s))
+  (cond ((string-match-p "^-" string)
+         (concat "\\" string))
+        (t (regexp-quote string))))
 
 (defun agtags--get-root ()
   "Get and validate env  `GTAGSROOT`."
@@ -317,14 +314,14 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'tags "Find tag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list (shell-quote-argument (agtags--quote-string user-input)))))))
+      (agtags--run-global-to-mode (list (shell-quote-argument (agtags--quote user-input)))))))
 
 (defun agtags-find-rtag ()
   "Input rtags and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument (agtags--quote-string user-input)))))))
+      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument (agtags--quote user-input)))))))
 
 (defun agtags-find-with-pattern ()
   "Input pattern, search with grep(1) and move to the locations."
@@ -338,7 +335,7 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search string")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument (agtags--quote-string user-input)))))))
+      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument (agtags--quote user-input)))))))
 
 (defun agtags-switch-dwim ()
   "Switch to last agtags-*-mode buffer."
