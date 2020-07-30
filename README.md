@@ -22,6 +22,7 @@ A simple setup demo
   (defun agtags-mode-on()
     (agtags-mode 1))
 
+  (setq agtags-key-prefix "C-c t")
   (setq agtags-global-treat-text t)
 
   (agtags-bind-keys)
@@ -46,7 +47,7 @@ Call **agtags-update-root** When you modify the **Project** directory.
 Variables
 -------
 
-**agtags-key-prefix** (Default "C-x t")
+**agtags-key-prefix** (Default "C-c t")
 
 It is used for the prefix key of agtags's command.
 

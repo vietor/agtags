@@ -37,7 +37,7 @@
   "GNU Global source code tagging system."
   :group 'tools)
 
-(defcustom agtags-key-prefix "C-x t"
+(defcustom agtags-key-prefix "C-c t"
   "It is used for the prefix key of agtags's command."
   :safe 'stringp
   :type 'string
