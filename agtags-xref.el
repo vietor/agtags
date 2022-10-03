@@ -62,6 +62,9 @@ any additional command line arguments to pass to GNU Global."
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql agtags)))
   (agtags--read-dwim))
 
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
+  agtags--completion-table)
+
 (cl-defmethod xref-backend-definitions ((_backend (eql agtags)) symbol)
   (agtags-xref--find-symbol (agtags--quote symbol) "-d"))
 
@@ -70,9 +73,6 @@ any additional command line arguments to pass to GNU Global."
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
   (agtags-xref--find-symbol symbol "-g"))
-
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
-  (agtags--run-global-to-list (list "-c")))
 
 (provide 'agtags-xref)
 ;;; agtags-xref.el ends here

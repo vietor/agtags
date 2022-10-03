@@ -30,6 +30,7 @@
 (require 'grep)
 (require 'compile)
 (require 'subr-x)
+(require 'pcase)
 
 (defvar agtags-mode)
 
@@ -272,12 +273,32 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (setq-local compilation-error-regexp-alist agtags--path-regexp-alist)
   (setq-local compilation-finish-functions #'agtags--global-mode-finished))
 
+;;
+;; The agtags-mode
+;;
+
+(defvar agtags--completion-table
+  (completion-table-dynamic
+   (lambda (prefix)
+     (agtags--run-global-to-list (list "-c" "-x" "-a" prefix)))))
+
+(defun agtags--completion-at-point ()
+  "A function for `completion-at-point-functions'."
+  (pcase (bounds-of-thing-at-point 'symbol)
+    (`(,beg . ,end)
+     (when (< beg end)
+       (list beg end agtags--completion-table)))))
+
 ;;;###autoload
 (define-minor-mode agtags-mode nil
   :lighter " Gtags"
   (if agtags-mode
-      (add-hook 'before-save-hook 'agtags--auto-update nil 'local)
-    (remove-hook 'before-save-hook 'agtags--auto-update 'local)))
+      (progn
+        (add-hook 'before-save-hook 'agtags--auto-update nil t)
+        (add-hook 'completion-at-point-functions #'agtags--completion-at-point t t))
+    (progn
+      (remove-hook 'before-save-hook 'agtags--auto-update t)
+      (remove-hook 'completion-at-point-functions #'agtags--completion-at-point t))))
 
 ;;
 ;; The interactive functions
