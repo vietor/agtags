@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.2.0
+;; Version: 0.2.2
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
