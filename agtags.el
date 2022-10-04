@@ -278,9 +278,11 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
 ;;
 
 (defvar agtags--completion-table
-  (completion-table-dynamic
-   (lambda (prefix)
-     (agtags--run-global-to-list (list "-c" "-x" "-a" prefix)))))
+  (let ((fun (lambda (prefix)
+               (agtags--run-global-to-list (list "-c" prefix)))))
+    (if (fboundp 'completion-table-with-cache)
+        (completion-table-with-cache fun)
+      (completion-table-dynamic fun))))
 
 (defun agtags--completion-at-point ()
   "A function for `completion-at-point-functions'."
