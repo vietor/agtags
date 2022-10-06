@@ -28,6 +28,7 @@
 
 ;;; Code:
 (require 'grep)
+(require 'xref)
 (require 'compile)
 (require 'subr-x)
 (require 'pcase)
@@ -296,15 +297,60 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
              :annotation-function (lambda (_) " Gtags")
              :exclusive 'no)))))
 
+(defun agtags-xref--make-xref (ctags-x-line)
+  "Create and return an xref object pointing to a file location.
+This uses the output of a based on global -x output line provided
+in CTAGS-X-LINE argument.  If the line does not match the
+expected format, return nil."
+  (if (string-match
+       "^\\([^ \t]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([^ \t\]+\\)[ \t]+\\(.*\\)"
+       ctags-x-line)
+      (xref-make (match-string 4 ctags-x-line)
+                 (xref-make-file-location (match-string 3 ctags-x-line)
+                                          (string-to-number (match-string 2 ctags-x-line))
+                                          0))))
+
+(defun agtags-xref--find-symbol (symbol &rest args)
+  "Run GNU Global to find a symbol SYMBOL.
+Return the results as a list of xref location objects.  ARGS are
+any additional command line arguments to pass to GNU Global."
+  (let* ((process-args (append
+                        args
+                        (list "-x" "-a" symbol)))
+         (global-output (agtags--run-global-to-list process-args)))
+    (remove nil (mapcar #'agtags-xref--make-xref global-output))))
+
+(defun agtags-xref--backend ()
+  "The agtags backend for Xref."
+  (when (agtags--is-active)
+    'agtags))
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql agtags)))
+  (agtags--read-dwim))
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
+  agtags--completion-table)
+
+(cl-defmethod xref-backend-definitions ((_backend (eql agtags)) symbol)
+  (agtags-xref--find-symbol (agtags--quote symbol) "-d"))
+
+(cl-defmethod xref-backend-references ((_backend (eql agtags)) symbol)
+  (agtags-xref--find-symbol (agtags--quote symbol) "-r"))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
+  (agtags-xref--find-symbol symbol "-g"))
+
 ;;;###autoload
 (define-minor-mode agtags-mode nil
   :lighter " Gtags"
   (if agtags-mode
       (progn
         (add-hook 'before-save-hook 'agtags--auto-update nil t)
+        (add-hook 'xref-backend-functions 'agtags-xref--backend nil t)
         (add-hook 'completion-at-point-functions #'agtags--completion-at-point t t))
     (progn
       (remove-hook 'before-save-hook 'agtags--auto-update t)
+      (remove-hook 'xref-backend-functions 'agtags-xref--backend t)
       (remove-hook 'completion-at-point-functions #'agtags--completion-at-point t))))
 
 ;;

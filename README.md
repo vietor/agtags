@@ -12,7 +12,6 @@ Put this file into load-path'ed directory, and byte compile it if desired. And p
 
 ``` el
 (require 'agtags)
-(require 'agtags-xref) ;; drop it when you don't need xref
 ```
 
 A simple setup demo
@@ -28,8 +27,7 @@ A simple setup demo
   (agtags-bind-keys)
 
   (add-hook 'text-mode-hook 'agtags-mode-on)
-  (add-hook 'prog-mode-hook 'agtags-mode-on)
-  (add-to-list 'xref-backend-functions 'agtags-xref-backend)) ;; drop it when you don't need xref
+  (add-hook 'prog-mode-hook 'agtags-mode-on))
 ```
 
 Call **agtags-update-root** When you modify the **Project** directory.
