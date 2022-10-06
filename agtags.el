@@ -89,14 +89,16 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
          (file-regular-p (expand-file-name "GTAGS" dir)))))
 
 (defun agtags--run-global-to-list (arguments)
-  "Execute the global command to list, use ARGUMENTS; Return nil if an error occured."
+  "Execute the global command to list, use ARGUMENTS;
+Return nil if an error occured."
   (let ((default-directory (agtags--get-root)))
     (condition-case nil
         (apply #'process-lines "global" arguments)
       (error nil))))
 
 (defun agtags--run-global-to-mode (arguments &optional result)
-  "Execute the global command to agtags-*-mode, use ARGUMENTS; output format use RESULT."
+  "Execute the global command to agtags-*-mode, use ARGUMENTS;
+Output format use RESULT."
   (let* ((xr (or result "grep"))
          (xs (append (list "global"
                            (format "--result=%s" xr)
@@ -109,7 +111,8 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
                        (if (string= xr "path") 'agtags-path-mode 'agtags-grep-mode))))
 
 (defun agtags--run-global-completing (flag string predicate code)
-  "Completion Function with FLAG for `completing-read'. Require: STRING PREDICATE CODE."
+  "Completion Function with FLAG for `completing-read'.
+Require: STRING PREDICATE CODE."
   (let* ((xs (append (list "-c"
                            (and (eq flag 'files) "--path")
                            (and (eq flag 'rtags) "--reference")
@@ -212,7 +215,7 @@ If there's a string at point, offer that as a default."
 
 (defconst agtags--path-regexp-alist
   `((,"^\\(?:[^\"'\n]*/\\)?[^ )\t\n]+$" 0))
-  "Custom 'compilation-error-regexp-alist' for agtags-path-mode.")
+  "Custom 'compilation-error-regexp-alist' for `agtags-path-mode`.")
 
 (defconst agtags--grep-regexp-alist
   `((,"^\\(.+?\\):\\([0-9]+\\):\\(?:$\\|[^0-9\n]\\|[0-9][^0-9\n]\\|[0-9][0-9].\\)"
@@ -222,7 +225,7 @@ If there's a string at point, offer that as a default."
                 (mbeg (text-property-any start (line-end-position) 'global-color t)))
            (and mbeg (- mbeg start)))))
      nil 1))
-  "Custom 'compilation-error-regexp-alist' for agtags-grep-mode.")
+  "Custom 'compilation-error-regexp-alist' for `agtags-grep-mode`.")
 
 (defun agtags--global-mode-finished (buffer _tatus)
   "Function to call when a gun global process finishes.
@@ -289,7 +292,9 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
   (pcase (bounds-of-thing-at-point 'symbol)
     (`(,beg . ,end)
      (when (< beg end)
-       (list beg end agtags--completion-table)))))
+       (list beg end agtags--completion-table
+             :annotation-function (lambda (_) " Gtags")
+             :exclusive 'no)))))
 
 ;;;###autoload
 (define-minor-mode agtags-mode nil
