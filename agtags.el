@@ -66,6 +66,9 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
                                         (inhibit-same-window . nil))
   "Custom 'display-buffer-overriding-action' in agtags-*-mode.")
 
+(defvar agtags--global-to-list-cache nil
+  "Cache for 'agtags--run-cached-global-to-list.")
+
 ;;
 ;; The private functions
 ;;
@@ -97,30 +100,44 @@ Return nil if an error occured."
         (apply #'process-lines "global" arguments)
       (error nil))))
 
+(defun agtags--run-cached-global-to-list (arguments)
+  "Execute the global command to list and cache it, use ARGUMENTS;
+Return nil if an error occured."
+  (let ((cache-key (string-join arguments "$"))
+        (result-data nil))
+    (if (and agtags--global-to-list-cache
+             (string= (car agtags--global-to-list-cache) cache-key))
+        (cdr agtags--global-to-list-cache)
+      (progn
+        (setq result-data (agtags--run-global-to-list arguments))
+        (when result-data
+          (setq agtags--global-to-list-cache (cons cache-key result-data)))
+        result-data))))
+
 (defun agtags--run-global-to-mode (arguments &optional result)
   "Execute the global command to agtags-*-mode, use ARGUMENTS;
 Output format use RESULT."
   (let* ((xr (or result "grep"))
-         (xs (append (list "global"
-                           (format "--result=%s" xr)
-                           (and agtags-global-ignore-case "-i")
-                           (and agtags-global-treat-text "-o"))
-                     arguments))
+         (xs (delq nil (append (list "global"
+                                     (format "--result=%s" xr)
+                                     (and agtags-global-ignore-case "-i")
+                                     (and agtags-global-treat-text "-o"))
+                               arguments)))
          (default-directory (agtags--get-root))
          (display-buffer-overriding-action agtags--display-buffer-dwim))
-    (compilation-start (mapconcat #'identity (delq nil xs) " ")
+    (compilation-start (mapconcat #'identity xs " ")
                        (if (string= xr "path") 'agtags-path-mode 'agtags-grep-mode))))
 
 (defun agtags--run-global-completing (flag string predicate code)
   "Completion Function with FLAG for `completing-read'.
 Require: STRING PREDICATE CODE."
-  (let* ((xs (append (list "-c"
-                           (and (eq flag 'files) "-P")
-                           (and (eq flag 'rtags) "-r")
-                           (and agtags-global-ignore-case "-i")
-                           (and agtags-global-treat-text "-o")
-                           string)))
-         (candidates (agtags--run-global-to-list (delq nil xs))))
+  (let* ((xs (delq nil (append (list "-c"
+                                     (and (eq flag 'files) "-P")
+                                     (and (eq flag 'rtags) "-r")
+                                     (and agtags-global-ignore-case "-i")
+                                     (and agtags-global-treat-text "-o")
+                                     string))))
+         (candidates (agtags--run-cached-global-to-list xs)))
     (cond ((eq code nil)
 	       (try-completion string candidates predicate))
 	      ((eq code t)
@@ -188,6 +205,7 @@ If there's a string at point, offer that as a default."
              buffer-file-name
              (agtags--is-active)
              (string-prefix-p (agtags--get-root) buffer-file-name))
+    (setq agtags--global-to-list-cache nil)
     (call-process "global" nil nil nil "-u" (concat "--single-update=" buffer-file-name))))
 
 (defadvice compile-goto-error (around agtags activate)
@@ -286,10 +304,8 @@ BUFFER is the global's mode buffer, STATUS was the finish status."
 
 (defvar agtags--completion-table
   (let ((fun (lambda (prefix)
-               (agtags--run-global-to-list (list "-c" prefix)))))
-    (if (fboundp 'completion-table-with-cache)
-        (completion-table-with-cache fun)
-      (completion-table-dynamic fun))))
+               (agtags--run-cached-global-to-list (list "-c" prefix)))))
+    (completion-table-dynamic fun)))
 
 (defun agtags--completion-at-point ()
   "A function for `completion-at-point-functions'."
@@ -363,6 +379,7 @@ any additional command line arguments to pass to GNU Global."
 (defun agtags-update-tags ()
   "Create or Update tag files (e.g. GTAGS) in directory `GTAGSROOT`."
   (interactive)
+  (setq agtags--global-to-list-cache nil)
   (let ((rootpath (agtags--get-root)))
     (dolist (file (list "GRTAGS" "GPATH" "GTAGS"))
       (ignore-errors
@@ -443,7 +460,8 @@ any additional command line arguments to pass to GNU Global."
 ;;;###autoload
 (defun agtags-update-root (root)
   "Set ROOT directory of the project for agtags."
-  (setenv "GTAGSROOT" root))
+  (setenv "GTAGSROOT" root)
+  (setq agtags--global-to-list-cache nil))
 
 (provide 'agtags)
 ;;; agtags.el ends here
