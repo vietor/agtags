@@ -103,8 +103,8 @@ Output format use RESULT."
   (let* ((xr (or result "grep"))
          (xs (append (list "global"
                            (format "--result=%s" xr)
-                           (and agtags-global-ignore-case "--ignore-case")
-                           (and agtags-global-treat-text "--other"))
+                           (and agtags-global-ignore-case "-i")
+                           (and agtags-global-treat-text "-o"))
                      arguments))
          (default-directory (agtags--get-root))
          (display-buffer-overriding-action agtags--display-buffer-dwim))
@@ -115,15 +115,18 @@ Output format use RESULT."
   "Completion Function with FLAG for `completing-read'.
 Require: STRING PREDICATE CODE."
   (let* ((xs (append (list "-c"
-                           (and (eq flag 'files) "--path")
-                           (and (eq flag 'rtags) "--reference")
-                           (and agtags-global-ignore-case "--ignore-case")
-                           (and agtags-global-treat-text "--other")
+                           (and (eq flag 'files) "-P")
+                           (and (eq flag 'rtags) "-r")
+                           (and agtags-global-ignore-case "-i")
+                           (and agtags-global-treat-text "-o")
                            string)))
          (candidates (agtags--run-global-to-list (delq nil xs))))
-    (if (not code)
-        (try-completion string candidates predicate)
-      (all-completions string candidates predicate))))
+    (cond ((eq code nil)
+	       (try-completion string candidates predicate))
+	      ((eq code t)
+	       (all-completions string candidates predicate))
+	      ((eq code 'lambda)
+	       (if (intern-soft string candidates) t nil)))))
 
 (defun agtags--read-dwim ()
   "If there's an active selection, return that.
@@ -381,7 +384,7 @@ any additional command line arguments to pass to GNU Global."
   (interactive)
   (let ((user-input (agtags--read-input "Find files")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--path" (shell-quote-argument user-input) "path")))))
+      (agtags--run-global-to-mode (list "-P" (shell-quote-argument user-input) "path")))))
 
 (defun agtags-find-tag ()
   "Input tag and move to the locations."
@@ -395,21 +398,21 @@ any additional command line arguments to pass to GNU Global."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--reference" (shell-quote-argument (agtags--quote user-input)))))))
+      (agtags--run-global-to-mode (list "-r" (shell-quote-argument (agtags--quote user-input)))))))
 
 (defun agtags-find-with-pattern ()
   "Input pattern, search with grep(1) and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search pattern")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument user-input))))))
+      (agtags--run-global-to-mode (list "-g" (shell-quote-argument user-input))))))
 
 (defun agtags-find-with-string ()
   "Input string, search as substring and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search string")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "--grep" (shell-quote-argument (agtags--quote user-input)))))))
+      (agtags--run-global-to-mode (list "-g" (shell-quote-argument (agtags--quote user-input)))))))
 
 (defun agtags-switch-dwim ()
   "Switch to last agtags-*-mode buffer."
