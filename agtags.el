@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.2.2
+;; Version: 0.2.3
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
@@ -53,7 +53,7 @@
 
 (defcustom agtags-global-treat-text nil
   "Non-nil if Global should include matches from text files.
-This affects 'agtags--find-file' and 'agtags--find-grep'."
+This affects `agtags--find-file' and `agtags--find-grep'."
   :safe 'booleanp
   :type 'boolean
   :group 'agtags)
@@ -64,10 +64,10 @@ This affects 'agtags--find-file' and 'agtags--find-grep'."
 (defconst agtags--display-buffer-dwim '((display-buffer-reuse-window
                                          display-buffer-same-window)
                                         (inhibit-same-window . nil))
-  "Custom 'display-buffer-overriding-action' in agtags-*-mode.")
+  "Custom `display-buffer-overriding-action' in agtags-*-mode.")
 
 (defvar agtags--global-to-list-cache nil
-  "Cache for 'agtags--run-cached-global-to-list.")
+  "Cache for `agtags--run-cached-global-to-list'.")
 
 ;;
 ;; The private functions
@@ -237,7 +237,7 @@ If there's a string at point, offer that as a default."
 
 (defconst agtags--path-regexp-alist
   `((,"^\\(?:[^\"'\n]*/\\)?[^ )\t\n]+$" 0))
-  "Custom 'compilation-error-regexp-alist' for `agtags-path-mode`.")
+  "Custom `compilation-error-regexp-alist' for `agtags-path-mode'.")
 
 (defconst agtags--grep-regexp-alist
   `((,"^\\(.+?\\):\\([0-9]+\\):\\(?:$\\|[^0-9\n]\\|[0-9][^0-9\n]\\|[0-9][0-9].\\)"
@@ -247,7 +247,7 @@ If there's a string at point, offer that as a default."
                 (mbeg (text-property-any start (line-end-position) 'global-color t)))
            (and mbeg (- mbeg start)))))
      nil 1))
-  "Custom 'compilation-error-regexp-alist' for `agtags-grep-mode`.")
+  "Custom `compilation-error-regexp-alist' for `agtags-grep-mode'.")
 
 (defun agtags--global-mode-finished (buffer _tatus)
   "Function to call when a gun global process finishes.
@@ -345,18 +345,23 @@ any additional command line arguments to pass to GNU Global."
     'agtags))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql agtags)))
+  "Xref backend of `identifier-at-point'."
   (agtags--read-dwim))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql agtags)))
+  "Xref backend of `identifier-completion-table'."
   agtags--completion-table)
 
 (cl-defmethod xref-backend-definitions ((_backend (eql agtags)) symbol)
+  "Xref backend for SYMBOL `definitions'."
   (agtags-xref--find-symbol (agtags--quote symbol) "-d"))
 
 (cl-defmethod xref-backend-references ((_backend (eql agtags)) symbol)
+  "Xref backend of SYMBOL `references'."
   (agtags-xref--find-symbol (agtags--quote symbol) "-r"))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
+  "Xref backend of SYMBOL `apropos'."
   (agtags-xref--find-symbol symbol "-g"))
 
 ;;;###autoload
