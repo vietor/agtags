@@ -97,10 +97,10 @@ This affects `agtags--find-file' and `agtags--find-grep'."
   (and (not (string-empty-p dir))
        (file-regular-p (expand-file-name "GTAGS" dir))))
 
-(defun agtags--run-global-to-list (arguments)
-  "Execute the global command to list, use ARGUMENTS;
+(defun agtags--run-global-to-list (arguments &optional dir)
+  "Execute the global command to list, use DIR and ARGUMENTS;
 Return nil if an error occured."
-  (let ((current-root (agtags--parse-root)))
+  (let* ((current-root (or dir (agtags--parse-root))))
     (condition-case nil
         (with-temp-buffer
           (cd current-root)
@@ -110,13 +110,14 @@ Return nil if an error occured."
 (defun agtags--run-cached-global-to-list (arguments)
   "Execute the global command to list and cache it, use ARGUMENTS;
 Return nil if an error occured."
-  (let ((cache-key (string-join arguments "$"))
-        (result-data nil))
+  (let* ((current-root (agtags--parse-root))
+         (cache-key (concat current-root "$" (string-join arguments "$")))
+         (result-data nil))
     (if (and agtags--global-to-list-cache
              (string= (car agtags--global-to-list-cache) cache-key))
         (cdr agtags--global-to-list-cache)
       (progn
-        (setq result-data (agtags--run-global-to-list arguments))
+        (setq result-data (agtags--run-global-to-list arguments current-root))
         (when result-data
           (setq agtags--global-to-list-cache (cons cache-key result-data)))
         result-data))))
