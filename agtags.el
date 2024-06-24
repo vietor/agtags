@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018-2024 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.2.3
+;; Version: 0.2.4
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
@@ -32,6 +32,7 @@
 (require 'compile)
 (require 'subr-x)
 (require 'pcase)
+(require 'project)
 
 (defvar agtags-mode)
 
@@ -82,12 +83,14 @@ This affects `agtags--find-file' and `agtags--find-grep'."
          (concat "\\" string))
         (t (regexp-quote string))))
 
-(defun agtags--get-root ()
-  "Get project current ROOT."
-  (unless (and agtags--current-root
-               (not (string-empty-p agtags--current-root)))
-    (error "No set project root by `agtags-update-root'"))
-  agtags--current-root)
+(defun agtags--parse-root ()
+  "Parse project current ROOT."
+  (if agtags--current-root
+      agtags--current-root
+    (let ((project (project-current)))
+      (if project
+          (project-root project)
+        (error "No found project root")))))
 
 (defun agtags--is-active (dir)
   "Test global is actived in DIR."
@@ -97,7 +100,7 @@ This affects `agtags--find-file' and `agtags--find-grep'."
 (defun agtags--run-global-to-list (arguments)
   "Execute the global command to list, use ARGUMENTS;
 Return nil if an error occured."
-  (let ((current-root (agtags--get-root)))
+  (let ((current-root (agtags--parse-root)))
     (condition-case nil
         (with-temp-buffer
           (cd current-root)
@@ -121,7 +124,7 @@ Return nil if an error occured."
 (defun agtags--run-global-to-mode (arguments &optional result)
   "Execute the global command to agtags-*-mode, use ARGUMENTS;
 Output format use RESULT."
-  (let* ((current-root (agtags--get-root))
+  (let* ((current-root (agtags--parse-root))
          (xr (or result "grep"))
          (xs (delq nil (append (list "global"
                                      (format "--result=%s" xr)
@@ -207,7 +210,7 @@ If there's a string at point, offer that as a default."
 
 (defun agtags--auto-update()
   "Auto update tags file, when buffer was save."
-  (let ((current-root (agtags--get-root)))
+  (let ((current-root (agtags--parse-root)))
     (when (and agtags-mode
                buffer-file-name
                (string-prefix-p current-root buffer-file-name)
@@ -351,7 +354,7 @@ any additional command line arguments to pass to GNU Global."
 
 (defun agtags-xref--backend ()
   "The agtags backend for Xref."
-  (let ((current-root (agtags--get-root)))
+  (let ((current-root (agtags--parse-root)))
     (when (agtags--is-active current-root)
       'agtags)))
 
@@ -393,25 +396,27 @@ any additional command line arguments to pass to GNU Global."
 ;;
 
 (defun agtags-update-tags ()
-  "Create or Update tag files (e.g. GTAGS) in directory `GTAGSROOT`."
+  "Create or Update tag files (e.g. GTAGS) in project ROOT."
   (interactive)
-  (setq agtags--history-list nil)
-  (setq agtags--global-to-list-cache nil)
-  (let ((current-root (agtags--get-root)))
+  (let ((current-root (if agtags--current-root
+                          agtags--current-root
+                        (read-directory-name "Root directory: "))))
+    (setq agtags--history-list nil)
+    (setq agtags--global-to-list-cache nil)
     (dolist (file (list "GRTAGS" "GPATH" "GTAGS"))
       (ignore-errors
         (delete-file (expand-file-name file current-root))))
     (with-temp-buffer
       (cd current-root)
-      (when (zerop (call-process (executable-find "gtags") nil nil nil "-i"))
-        (message "Tags create or update in %s" current-root)))))
+      (when (zerop (call-process (executable-find "gtags") nil t nil "-i"))
+        (message "Tags create or update: %s" current-root)))))
 
 (defun agtags-open-file ()
   "Input pattern and move to the top of the file."
   (interactive)
   (let ((user-input (agtags--read-completing 'files "Open file")))
     (when (> (length user-input) 0)
-      (find-file (expand-file-name user-input (agtags--get-root))))))
+      (find-file (expand-file-name user-input (agtags--parse-root))))))
 
 (defun agtags-find-file ()
   "Input pattern, search file and move to the top of the file."
@@ -476,7 +481,7 @@ any additional command line arguments to pass to GNU Global."
 
 ;;;###autoload
 (defun agtags-update-root (root)
-  "Set ROOT directory of the project for agtags."
+  "Manual update project ROOT for agtags."
   (setq agtags--current-root root)
   (setq agtags--history-list nil)
   (setq agtags--global-to-list-cache nil))
