@@ -59,8 +59,8 @@ This affects `agtags--find-file' and `agtags--find-grep'."
   :type 'boolean
   :group 'agtags)
 
-(defvar agtags--current-root nil
-  "Gtags current ROOT.")
+(defvar agtags--manual-root nil
+  "Gtags manual current ROOT.")
 
 (defvar agtags--history-list nil
   "Gtags history list.")
@@ -83,14 +83,16 @@ This affects `agtags--find-file' and `agtags--find-grep'."
          (concat "\\" string))
         (t (regexp-quote string))))
 
+(defun agtags--project-root ()
+  (let ((project (project-current)))
+    (when project
+      (project-root project))))
+
 (defun agtags--parse-root ()
   "Parse project current ROOT."
-  (if agtags--current-root
-      agtags--current-root
-    (let ((project (project-current)))
-      (if project
-          (project-root project)
-        (error "No found project root")))))
+  (if agtags--manual-root
+      agtags--manual-root
+    (agtags--project-root)))
 
 (defun agtags--is-active (dir)
   "Test global is actived in DIR."
@@ -101,11 +103,11 @@ This affects `agtags--find-file' and `agtags--find-grep'."
   "Execute the global command to list, use DIR and ARGUMENTS;
 Return nil if an error occured."
   (let* ((current-root (or dir (agtags--parse-root))))
-    (condition-case nil
+    (when (agtags--is-active current-root)
+      (ignore-errors
         (with-temp-buffer
           (cd current-root)
-          (apply #'process-lines "global" arguments))
-      (error nil))))
+          (apply #'process-lines "global" arguments))))))
 
 (defun agtags--run-cached-global-to-list (arguments)
   "Execute the global command to list and cache it, use ARGUMENTS;
@@ -133,10 +135,12 @@ Output format use RESULT."
                                      (and agtags-global-treat-text "-o"))
                                arguments)))
          (display-buffer-overriding-action agtags--display-buffer-dwim))
-    (with-temp-buffer
-      (cd current-root)
-      (compilation-start (mapconcat #'identity xs " ")
-                         (if (string= xr "path") 'agtags-path-mode 'agtags-grep-mode)))))
+    (when (agtags--is-active current-root)
+      (ignore-errors
+        (with-temp-buffer
+          (cd current-root)
+          (compilation-start (mapconcat #'identity xs " ")
+                             (if (string= xr "path") 'agtags-path-mode 'agtags-grep-mode)))))))
 
 (defun agtags--run-global-completing (flag string predicate code)
   "Completion Function with FLAG for `completing-read'.
@@ -214,13 +218,14 @@ If there's a string at point, offer that as a default."
   (let ((current-root (agtags--parse-root)))
     (when (and agtags-mode
                buffer-file-name
-               (string-prefix-p current-root buffer-file-name)
-               (agtags--is-active current-root))
+               (agtags--is-active current-root)
+               (string-prefix-p current-root buffer-file-name))
       (setq agtags--history-list nil)
       (setq agtags--global-to-list-cache nil)
-      (with-temp-buffer
-        (cd current-root)
-        (call-process "global" nil nil nil "-u" (concat "--single-update=" buffer-file-name))))))
+      (ignore-errors
+        (with-temp-buffer
+          (cd current-root)
+          (call-process "global" nil nil nil "-u" (concat "--single-update=" buffer-file-name)))))))
 
 (defadvice compile-goto-error (around agtags activate)
   "Use same window when goto selected."
@@ -399,18 +404,20 @@ any additional command line arguments to pass to GNU Global."
 (defun agtags-update-tags ()
   "Create or Update tag files (e.g. GTAGS) in project ROOT."
   (interactive)
-  (let ((current-root (if agtags--current-root
-                          agtags--current-root
-                        (read-directory-name "Root directory: "))))
+  (let ((current-root (if agtags--manual-root
+                          agtags--manual-root
+                        (read-directory-name "Root directory: " (agtags--project-root)))))
     (setq agtags--history-list nil)
     (setq agtags--global-to-list-cache nil)
     (dolist (file (list "GRTAGS" "GPATH" "GTAGS"))
       (ignore-errors
         (delete-file (expand-file-name file current-root))))
-    (with-temp-buffer
-      (cd current-root)
-      (when (zerop (call-process (executable-find "gtags") nil t nil "-i"))
-        (message "Tags create or update: %s" current-root)))))
+    (condition-case nil
+        (with-temp-buffer
+          (cd current-root)
+          (when (zerop (call-process (executable-find "gtags") nil t nil "-i"))
+            (message "Tags create successed: %s" current-root)))
+      (error (message "Tags create failed: %s" current-root)))))
 
 (defun agtags-open-file ()
   "Input pattern and move to the top of the file."
@@ -482,8 +489,8 @@ any additional command line arguments to pass to GNU Global."
 
 ;;;###autoload
 (defun agtags-update-root (root)
-  "Manual update project ROOT for agtags."
-  (setq agtags--current-root root)
+  "Update manual ROOT for agtags."
+  (setq agtags--manual-root root)
   (setq agtags--history-list nil)
   (setq agtags--global-to-list-cache nil))
 
