@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018-2024 Vietor Liu
 
 ;; Author: Vietor Liu <vietor.liu@gmail.com>
-;; Version: 0.2.4
+;; Version: 0.3.0
 ;; Keywords: tools, convenience
 ;; Created: 2018-12-14
 ;; URL: https://github.com/vietor/agtags
@@ -59,8 +59,8 @@ This affects `agtags--find-file' and `agtags--find-grep'."
   :type 'boolean
   :group 'agtags)
 
-(defvar agtags--manual-root nil
-  "Gtags manual current ROOT.")
+(defconst agtags-created-tag-files '("GPATH" "GTAGS" "GRTAGS")
+  "Gtags created tag files")
 
 (defvar agtags--history-list nil
   "Gtags history list.")
@@ -83,16 +83,11 @@ This affects `agtags--find-file' and `agtags--find-grep'."
          (concat "\\" string))
         (t (regexp-quote string))))
 
-(defun agtags--project-root ()
+(defun agtags--parse-root ()
+  "Parse project root directory."
   (let ((project (project-current)))
     (when project
       (project-root project))))
-
-(defun agtags--parse-root ()
-  "Parse project current ROOT."
-  (if agtags--manual-root
-      agtags--manual-root
-    (agtags--project-root)))
 
 (defun agtags--is-active (dir)
   "Test global is actived in DIR."
@@ -402,14 +397,12 @@ any additional command line arguments to pass to GNU Global."
 ;;
 
 (defun agtags-update-tags ()
-  "Create or Update tag files (e.g. GTAGS) in project ROOT."
+  "Create or Update tag files (e.g. GTAGS) in root directory."
   (interactive)
-  (let ((current-root (if agtags--manual-root
-                          agtags--manual-root
-                        (read-directory-name "Root directory: " (agtags--project-root)))))
+  (let ((current-root (read-directory-name "Root directory: " (agtags--parse-root))))
     (setq agtags--history-list nil)
     (setq agtags--global-to-list-cache nil)
-    (dolist (file (list "GRTAGS" "GPATH" "GTAGS"))
+    (dolist (file agtags-created-tag-files)
       (ignore-errors
         (delete-file (expand-file-name file current-root))))
     (condition-case nil
@@ -486,13 +479,6 @@ any additional command line arguments to pass to GNU Global."
                   ("p" . agtags-find-with-string)
                   ("g" . agtags-find-with-pattern)))
     (global-set-key (kbd (concat agtags-key-prefix " " (car pair))) (cdr pair))))
-
-;;;###autoload
-(defun agtags-update-root (root)
-  "Update manual ROOT for agtags."
-  (setq agtags--manual-root root)
-  (setq agtags--history-list nil)
-  (setq agtags--global-to-list-cache nil))
 
 (provide 'agtags)
 ;;; agtags.el ends here

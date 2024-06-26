@@ -1,2 +1,6 @@
 *.elc
-.aproject
+GPATH
+GRTAGS
+GTAGS
+
+

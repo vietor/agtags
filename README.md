@@ -3,12 +3,12 @@
 agtags
 ========
 
-Another Emacs frontend to GNU Global. It support [**wgrep**](https://github.com/mhayashi1120/Emacs-wgrep) in **agtags-grep-mode**.
+Another Emacs frontend to GNU Global.
 
 Setup
 -----
 
-Put this file into load-path'ed directory, and byte compile it if desired. And put the following expression into your ~/.emacs.
+Put this file into load-path'ed directory, and byte compile it if desired. Put the following expression into your ~/.emacs.
 
 ``` el
 (require 'agtags)
@@ -18,28 +18,11 @@ A simple setup demo
 
 ``` el
 (when (executable-find "global")
-  (defun agtags-mode-on()
-    (agtags-mode 1))
-
-  (setq agtags-key-prefix "C-c t")
+  (agtags-bind-keys)
   (setq agtags-global-treat-text t)
 
-  (agtags-bind-keys)
-
-  (add-hook 'text-mode-hook 'agtags-mode-on)
-  (add-hook 'prog-mode-hook 'agtags-mode-on))
-```
-
-Call **agtags-update-root** When you modify the **Project** directory.
-
-``` el
-;; aproject demo
-(after-aproject-change (agtags-update-root aproject-rootdir)))
-
-;; projectile demo
-(defun my-switch-project-hook ()
-  (agtags-update-root (projectile-project-root)))
-(add-hook 'projectile-after-switch-project-hook #'my-switch-project-hook)
+  (add-hook 'text-mode-hook 'agtags-mode)
+  (add-hook 'prog-mode-hook 'agtags-mode))
 ```
 
 Variables
@@ -60,21 +43,16 @@ Non-nil if Global should include matches from text files. This affects 'agtags-f
 Functions
 -------
 
-**agtags-bind-keys ()**
+**agtags-bind-keys**
 
 Set global key bindings for agtags.
-
-**agtags-update-root (root)**
-
-It simply modify env **GTAGSROOT**.
-Set ROOT directory of the project for agtags.
 
 Bind Keys
 -------
 
 **("b" . agtags-update-tags)**
 
-Create or Update tag files (e.g. GTAGS) in directory `GTAGSROOT`.
+Create or Update tag files (e.g. GTAGS) in `Root Directory'.
 
 **("f" . agtags-open-file)**
 
