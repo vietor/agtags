@@ -133,7 +133,7 @@ Output format use RESULT."
                                      (and agtags-global-ignore-case "-i")
                                      (and agtags-global-treat-text "-o"))
                                args
-                               (list string))))
+                               (list (shell-quote-argument string)))))
          (display-buffer-overriding-action agtags--display-buffer-dwim))
     (when (agtags--is-active current-root)
       (ignore-errors
