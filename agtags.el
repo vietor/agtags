@@ -77,11 +77,15 @@ This affects `agtags--find-file' and `agtags--find-grep'."
 ;; The private functions
 ;;
 
-(defun agtags--quote (string)
+(defun agtags--fix-param (string)
+  "Fix the STRING as the Global parameter."
+  (if (string-match-p "^-" string)
+      (concat "\\" string)
+    string))
+
+(defun agtags--quote-text (string)
   "Return a regular expression whose only exact match is STRING."
-  (cond ((string-match-p "^-" string)
-         (concat "\\" string))
-        (t (regexp-quote string))))
+  (agtags--fix-param (regexp-quote string)))
 
 (defun agtags--parse-root ()
   "Parse project root directory."
@@ -119,7 +123,7 @@ Return nil if an error occured."
           (setq agtags--global-to-list-cache (cons cache-key result-data)))
         result-data))))
 
-(defun agtags--run-global-to-mode (arguments &optional result)
+(defun agtags--run-global-to-mode (string args &optional result)
   "Execute the global command to agtags-*-mode, use ARGUMENTS;
 Output format use RESULT."
   (let* ((current-root (agtags--parse-root))
@@ -128,7 +132,8 @@ Output format use RESULT."
                                      (format "--result=%s" xr)
                                      (and agtags-global-ignore-case "-i")
                                      (and agtags-global-treat-text "-o"))
-                               arguments)))
+                               args
+                               (list string))))
          (display-buffer-overriding-action agtags--display-buffer-dwim))
     (when (agtags--is-active current-root)
       (ignore-errors
@@ -369,15 +374,15 @@ any additional command line arguments to pass to GNU Global."
 
 (cl-defmethod xref-backend-definitions ((_backend (eql agtags)) symbol)
   "Xref backend for SYMBOL `definitions'."
-  (agtags-xref--find-symbol (agtags--quote symbol) "-d"))
+  (agtags-xref--find-symbol (agtags--quote-text symbol) "-d"))
 
 (cl-defmethod xref-backend-references ((_backend (eql agtags)) symbol)
   "Xref backend of SYMBOL `references'."
-  (agtags-xref--find-symbol (agtags--quote symbol) "-r"))
+  (agtags-xref--find-symbol (agtags--quote-text symbol) "-r"))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql agtags)) symbol)
   "Xref backend of SYMBOL `apropos'."
-  (agtags-xref--find-symbol symbol "-g"))
+  (agtags-xref--find-symbol (agtags--fix-param symbol) "-g"))
 
 ;;;###autoload
 (define-minor-mode agtags-mode nil
@@ -424,35 +429,35 @@ any additional command line arguments to pass to GNU Global."
   (interactive)
   (let ((user-input (agtags--read-input "Find files")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "-P" (shell-quote-argument user-input) "path")))))
+      (agtags--run-global-to-mode user-input '("-P") "path"))))
 
 (defun agtags-find-tag ()
   "Input tag and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'tags "Find tag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list (shell-quote-argument (agtags--quote user-input)))))))
+      (agtags--run-global-to-mode (agtags--quote-text user-input) nil))))
 
 (defun agtags-find-rtag ()
   "Input rtags and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-completing-dwim 'rtags "Find rtag")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "-r" (shell-quote-argument (agtags--quote user-input)))))))
+      (agtags--run-global-to-mode (agtags--quote-text user-input) '("-r")))))
 
 (defun agtags-find-with-pattern ()
   "Input pattern, search with grep(1) and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search pattern")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "-g" (shell-quote-argument user-input))))))
+      (agtags--run-global-to-mode (agtags--fix-param user-input) '("-g")))))
 
 (defun agtags-find-with-string ()
   "Input string, search as substring and move to the locations."
   (interactive)
   (let ((user-input (agtags--read-input-dwim "Search string")))
     (when (> (length user-input) 0)
-      (agtags--run-global-to-mode (list "-g" (shell-quote-argument (agtags--quote user-input)))))))
+      (agtags--run-global-to-mode (agtags--quote-text user-input) '("-g")))))
 
 (defun agtags-switch-dwim ()
   "Switch to last agtags-*-mode buffer."
